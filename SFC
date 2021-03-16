@@ -1,0 +1,131 @@
+//simple formula calculator
+//простой калькулятор формул(выражений)
+
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+const int LEN = 80;
+const int MAX = 40; //максимальная длина выражения
+///////////////////////////////////////////////////
+
+class Stack {
+private:
+    char st [MAX];
+    int top;
+public:
+    Stack ()
+      {top = 0;}
+
+    void push (char var)
+      {st [++top] = var;}
+
+    char pop ()
+    {return st[top--];}
+
+    int getTop ()
+    {return top;}
+};
+///////////////////////////////////////////////////
+class Express {
+private:
+    Stack s;
+    char* pStr;
+    int len;
+public:
+    Express (char* ptr)
+    {
+        pStr = ptr;
+        len = strlen( pStr );
+    }
+
+    void parse ();
+    int solve ();
+};
+//////////////////////////////////////////////////
+void Express::parse()
+{
+    char ch;
+    char lastVal;
+    char lastTop;
+
+    for (int j=0; j<len; j++)
+    {
+        ch = pStr [j];
+
+        if (ch >= '0' && ch <= '9')
+            s.push(ch - '0');
+        else
+            if (ch == '+' || ch == '-' || ch == '*' || ch == '/')
+            {
+                if (s.getTop() == 1) // if this first operator
+                    s.push(ch);     // push in stack
+                else
+                {
+                    lastVal = s.pop(); //getting the previous number
+                    lastTop = s.pop(); //getting the ptevious operator
+                    //if this '*' or '/' and previous was '+' or '-'
+                    if ((ch == '*' || ch == '/') && (lastTop == '+' || lastTop == '-'))
+                    {
+                        s.push(lastTop); //canceling the last two takeaways from the stack
+                        s.push(lastVal);
+                    }
+                    else
+                    {
+                        //push in stack operation result
+                        switch (lastTop)
+                        {
+                            case '+': s.push(s.pop() + lastVal); break;
+                            case '-': s.push(s.pop() - lastVal); break;
+                            case '*': s.push(s.pop() * lastVal); break;
+                            case '/': s.push(s.pop() / lastVal); break;
+                            default: cout <<"Unknow opetator"; exit(1);
+                        }
+                    }
+                    s.push(ch);
+                }
+            }
+        else
+            {
+                cout <<"Unknow opetator";
+                exit(1);
+            }
+    }
+}
+////////////////////////////////////////////////
+int Express::solve(){
+    char lastVal;
+    while (s.getTop() > 1) {
+        lastVal = s.pop(); //get previous meaning
+        switch (s.pop()) {
+        case '+': s.push ( s.pop() + lastVal); break;
+        case '-': s.push(s.pop() - lastVal); break;
+        case '*': s.push(s.pop() * lastVal); break;
+        case '/': s.push(s.pop() / lastVal); break;
+        default: cout<<"Unknow operator"; exit(1);
+        }
+    }
+    return int (s.pop());
+}
+//////////////////////////////////////////////////
+int main()
+{
+    char ans;
+    char string [LEN];
+
+    cout<<"Enter the arithmetic operation";
+    do {
+        cout << "\Expression: ";
+        cin >> string;
+        Express* ePtr = new Express (string);
+        ePtr->parse();
+        cout << "\nResult expression = " << ePtr->solve()<<endl;
+        delete ePtr;
+        cout << "Another expression (y/n)? ";
+        cin >> ans;
+    }
+    while (ans == 'y');
+
+    return 0;
+}
